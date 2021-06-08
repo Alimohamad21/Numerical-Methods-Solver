@@ -115,17 +115,18 @@ class Application(tk.Frame):
         self.solve = tk.Button(self, text='solve', command=self.show_extra_buttons, font=self.my_font2, height=self.h,
                                width=self.w + 2, bg='#33FF4E')
         self.solve.grid(row=8, column=0, columnspan=5)
-        self.iterations = tk.Label(self, text='', bg='white', font=self.my_font)
-        self.iterations.grid(row=14, column=0, columnspan=5)
-        self.final_answer = tk.Label(self, text='', bg='white', font=self.my_font)
-        self.final_answer.grid(row=15, column=0, columnspan=5)
-        self.execution_time = tk.Label(self, text='', bg='white', font=self.my_font)
-        self.execution_time.grid(row=16, column=0, columnspan=5)
 
     def append_output_equation(self, input):
         self.output_equation['text'] += input
 
     def show_result(self):
+        self.open_new_window()
+        self.iterations = tk.Label(self.new_window, text='', bg='white', font=self.my_font)
+        self.iterations.grid(row=0, column=0, columnspan=10)
+        self.final_answer = tk.Label(self.new_window, text='', font=self.my_font)
+        self.final_answer.grid(row=1, column=3, columnspan=5)
+        self.execution_time = tk.Label(self.new_window, text='', font=self.my_font)
+        self.execution_time.grid(row=2, column=3, columnspan=5)
         epsilon = self.epsilon.get()
         iterations = self.max_iterations.get()
         if iterations == '':
@@ -184,6 +185,11 @@ class Application(tk.Frame):
 
     def clear_output(self):
         self.output_equation['text'] = ''
+
+    def open_new_window(self):
+        self.new_window = tk.Toplevel(self)
+        self.new_window.title("Results")
+        self.new_window.geometry("1100x550")
 
 
 root = tk.Tk()
