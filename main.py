@@ -4,7 +4,7 @@ import numpy as np
 from tkinter.ttk import *
 from root_solving_methods import *
 
-root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection, 'Gauss Elimination': gauss_elimination}
+root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection}
 
 
 class Application(tk.Frame):
@@ -162,7 +162,7 @@ class Application(tk.Frame):
         a=np.zeros((n,n+1))
         k=0
         for i in range(n):
-            for j in range(4):
+            for j in range(n+1):
                 a[i][j]=float(self.entries[k].get())
                 k+=1
         print(a)
@@ -182,12 +182,9 @@ class Application(tk.Frame):
                 x[i] = x[i] - a[i][j]*x[j]
             
             x[i] = x[i]/a[i][i]
-        self.x1 = tk.Label(self, text='x1={}'.format(x[0]), height=1, width=4)
-        self.x1.grid(row=12, column=0, sticky='nesw', pady=(10, 10))
-        self.x2 = tk.Label(self, text='x2={}'.format(x[1]), height=1, width=4)
-        self.x2.grid(row=12, column=1, sticky='nesw', pady=(10, 10))
-        self.x3 = tk.Label(self, text='x3={}'.format(x[2]), height=1, width=4)
-        self.x3.grid(row=12, column=2, sticky='nesw', pady=(10, 10))
+        for i in range(n):
+            self.x = tk.Label(self, text='x1={} '.format(x[i]), height=1, width=5)
+            self.x.grid(row=12, column=0+i, sticky='nesw', pady=(10, 10))
 
     def gauss_eqs_number(self):
         self.eqs_num_label = tk.Label(self, text='Please Insert Number of Coefficients:', height=1, width=30)
@@ -236,22 +233,7 @@ class Application(tk.Frame):
                 self.create_initial_guess2 = True
             except:
                 pass
-        """if self.choices.get() == 'Gauss Elimination':
-            if self.create_initial_guess2:
-                a = np.zeros((3,3+1))
-                for i in range(3):
-                    for j in range(0,6,2):
-                        self.label1 = tk.Label(self, font=self.my_font2, text='x {}:'.format(3-j//2), height=self.h, width=self.w)
-                        self.gauss_entry = tk.Entry(self,font=self.my_font2)
-                        self.label1.grid(row=9+i, column=j, sticky='nesw', pady=(10, 10))
-                        self.gauss_entry.grid(row=9+i, column=j+1, columnspan=2, pady=(10, 10))
-                    self.label1 = tk.Label(self, font=self.my_font2, text='=', height=self.h, width=self.w)
-                    self.gauss_entry = tk.Entry(self,font=self.my_font2)
-                    self.label1.grid(row=9+i, column=j+1, sticky='nesw', pady=(10, 10))
-                    self.gauss_entry.grid(row=9+i, column=j+2, columnspan=5, pady=(10, 10))
-                self.confirm = tk.Button(self, text='Confirm', command=self.gauss(a), font=self.my_font2, height=self.h,
-                                     width=self.w * 2, bg='#33FF4E')
-                self.create_extras=False"""
+            
         if self.create_extras:
             self.label1 = tk.Label(self, font=self.my_font2, text='guess:', height=self.h, width=self.w)
             self.initial_guess = tk.Entry(self,font=self.my_font2)
