@@ -1,9 +1,10 @@
 import tkinter as tk
 import tkinter.font as font
+import numpy as np
 from tkinter.ttk import *
 from root_solving_methods import *
 
-root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection}
+root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection, 'Gauss Elimination': gauss_elimination}
 
 
 class Application(tk.Frame):
@@ -13,7 +14,17 @@ class Application(tk.Frame):
         self.pack()
         self.create_initial_guess2 = True
         self.create_extras = True
-        self.create_widgets()
+        self.mainwindow()
+        #self.create_widgets()
+    def mainwindow(self):
+        self.mainlabel = tk.Label(self, text='Please Choose Type Of Equation:', bg='white')
+        self.mainlabel.grid(row=0, column=0, columnspan=10)
+        self.rooteqs = tk.Button(self, text='Root Equations', command=lambda:[self.create_widgets(),self.lineareqs.destroy()],height=1,
+                                     width=15, bg='#33FF4E')
+        self.rooteqs.grid(row=1, column=0, columnspan=5)                             
+        self.lineareqs = tk.Button(self, text='Linear Equations', command=lambda:[self.gauss_eqs_number(),self.rooteqs.destroy(),self.mainlabel.destroy(),self.lineareqs.destroy()], height=1,
+                                     width=15, bg='#33FF4E')
+        self.lineareqs.grid(row=1, column=10, columnspan=5)
 
     def create_operands(self):
         self.zero = tk.Button(self, text='0', command=lambda: self.append_output_equation('0'), font=self.my_font,
@@ -146,6 +157,69 @@ class Application(tk.Frame):
         self.iterations['text'] = result['Iterations']
         self.final_answer['text'] = 'Final Answer:' + result['Final Answer']
         self.execution_time['text'] = 'Execution Time:' + result['Execution Time']
+    
+    def gauss_elimination(self,n):
+        a=np.zeros((n,n+1))
+        k=0
+        for i in range(n):
+            for j in range(4):
+                a[i][j]=float(self.entries[k].get())
+                k+=1
+        print(a)
+        for i in range(n):
+            for j in range(i+1, n):
+                ratio = a[j][i]/a[i][i]
+                
+                for k in range(n+1):
+                    a[j][k] = a[j][k] - ratio * a[i][k]
+        x = np.zeros(n)
+        x[n-1] = a[n-1][n]/a[n-1][n-1]
+
+        for i in range(n-2,-1,-1):
+            x[i] = a[i][n]
+            
+            for j in range(i+1,n):
+                x[i] = x[i] - a[i][j]*x[j]
+            
+            x[i] = x[i]/a[i][i]
+        self.x1 = tk.Label(self, text='x1={}'.format(x[0]), height=1, width=4)
+        self.x1.grid(row=12, column=0, sticky='nesw', pady=(10, 10))
+        self.x2 = tk.Label(self, text='x2={}'.format(x[1]), height=1, width=4)
+        self.x2.grid(row=12, column=1, sticky='nesw', pady=(10, 10))
+        self.x3 = tk.Label(self, text='x3={}'.format(x[2]), height=1, width=4)
+        self.x3.grid(row=12, column=2, sticky='nesw', pady=(10, 10))
+
+    def gauss_eqs_number(self):
+        self.eqs_num_label = tk.Label(self, text='Please Insert Number of Coefficients:', height=1, width=30)
+        self.eqs_num_label.grid(row=0, column=0, sticky='nesw', pady=(10, 10))
+        self.eqs_entry=tk.Entry(self)
+        self.eqs_entry.grid(row=0,column=10,columnspan=2,pady=(10,10))
+        self.eqs_num_button = tk.Button(self, text='Confirm', command=lambda:[self.gauss(int(self.eqs_entry.get())),self.eqs_num_label.destroy(),
+                                self.eqs_entry.destroy(),self.eqs_num_button.destroy()], height=1,
+                                width=4 * 2, bg='#33FF4E') 
+        self.eqs_num_button.grid(row=0,column=15,columnspan=5)
+
+    def gauss(self,n):
+        self.toplabel = tk.Label(self, text='Please Insert Coefficients:', height=1, width=20)
+        self.toplabel.grid(row=0, column=5, sticky='nesw', pady=(10, 10))
+        #a = np.zeros((3,3+1))
+        self.entries=[]
+        for i in range(n):
+            for j in range(0,2*n,2):
+                self.label1 = tk.Label(self, text='x{}:'.format(1+j//2), height=1, width=4)
+                self.gauss_entry= tk.Entry(self)
+                self.entries.append(self.gauss_entry)
+                self.label1.grid(row=1+i, column=j, sticky='nesw', pady=(10, 10))
+                self.gauss_entry.grid(row=1+i, column=j+1, columnspan=2, pady=(10, 10))
+            self.label1 = tk.Label(self, text='=', height=1, width=4)
+            self.gauss_entry = tk.Entry(self)
+            self.entries.append(self.gauss_entry)
+            self.label1.grid(row=1+i, column=j+2, sticky='nesw', pady=(10, 10))
+            self.gauss_entry.grid(row=1+i, column=j+3,columnspan=2, pady=(10, 10))
+        self.confirm = tk.Button(self, text='Calculate', command=lambda:self.gauss_elimination(n), height=1,
+                                width=4 * 2, bg='#33FF4E') 
+        self.confirm.grid(row=1+i,column=15,columnspan=5)
+
 
     def show_extra_buttons(self):
         if self.choices.get() == 'Bisection Method':
@@ -162,6 +236,22 @@ class Application(tk.Frame):
                 self.create_initial_guess2 = True
             except:
                 pass
+        """if self.choices.get() == 'Gauss Elimination':
+            if self.create_initial_guess2:
+                a = np.zeros((3,3+1))
+                for i in range(3):
+                    for j in range(0,6,2):
+                        self.label1 = tk.Label(self, font=self.my_font2, text='x {}:'.format(3-j//2), height=self.h, width=self.w)
+                        self.gauss_entry = tk.Entry(self,font=self.my_font2)
+                        self.label1.grid(row=9+i, column=j, sticky='nesw', pady=(10, 10))
+                        self.gauss_entry.grid(row=9+i, column=j+1, columnspan=2, pady=(10, 10))
+                    self.label1 = tk.Label(self, font=self.my_font2, text='=', height=self.h, width=self.w)
+                    self.gauss_entry = tk.Entry(self,font=self.my_font2)
+                    self.label1.grid(row=9+i, column=j+1, sticky='nesw', pady=(10, 10))
+                    self.gauss_entry.grid(row=9+i, column=j+2, columnspan=5, pady=(10, 10))
+                self.confirm = tk.Button(self, text='Confirm', command=self.gauss(a), font=self.my_font2, height=self.h,
+                                     width=self.w * 2, bg='#33FF4E')
+                self.create_extras=False"""
         if self.create_extras:
             self.label1 = tk.Label(self, font=self.my_font2, text='guess:', height=self.h, width=self.w)
             self.initial_guess = tk.Entry(self,font=self.my_font2)
