@@ -205,7 +205,7 @@ class Application(tk.Frame):
             
             x[i] = x[i]/a[i][i]
         for i in range(n):
-            self.x = tk.Label(self, text='x{}={} '.format(i+1,x[i]), height=1, width=5)
+            self.x = tk.Label(self, text='x{}={:.3f} '.format(i+1,x[i]), height=1, width=10)
             self.x.grid(row=12, column=0+i, sticky='nesw', pady=(10, 10))
 
     def gauss_seidel(self,epsilon):
