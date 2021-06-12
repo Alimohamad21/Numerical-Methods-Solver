@@ -2,7 +2,10 @@ import tkinter as tk
 import tkinter.font as font
 import numpy as np
 from tkinter.ttk import *
+import sys
+sys.path.append("/Numerical-Methods-Solver/lib/")
 from root_solving_methods import *
+import gauss_methods as gm
 
 root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection}
 
@@ -178,60 +181,13 @@ class Application(tk.Frame):
         self.popup.mainloop()
 
     def gauss_elimination(self,n):
-        a=np.zeros((n,n+1))
-        k=0
-        for i in range(n):
-            for j in range(n+1):
-                try:
-                    a[i][j]=float(self.entries[k].get())
-                    k+=1
-                except:
-                    self.popupmsg("Please Insert Numerical Values In All Spaces!")
-        print(a)
-        for i in range(n):
-            for j in range(i+1, n):
-                ratio = a[j][i]/a[i][i]
-                
-                for k in range(n+1):
-                    a[j][k] = a[j][k] - ratio * a[i][k]
-        x = np.zeros(n)
-        x[n-1] = a[n-1][n]/a[n-1][n-1]
-
-        for i in range(n-2,-1,-1):
-            x[i] = a[i][n]
-            
-            for j in range(i+1,n):
-                x[i] = x[i] - a[i][j]*x[j]
-            
-            x[i] = x[i]/a[i][i]
+        x=gm.gauss_elimination_calc(self,self.entries,n)
         for i in range(n):
             self.x = tk.Label(self, text='x{}={:.3f} '.format(i+1,x[i]), height=1, width=10)
-            self.x.grid(row=12, column=0+i, sticky='nesw', pady=(10, 10))
+            self.x.grid(row=12, column=0+i,sticky='nesw', pady=(10, 10))
 
     def gauss_seidel(self,epsilon):
-        a=np.zeros((3,3+1))
-        k=0
-        iterations='i \t x1 \t\t x2 \t\t x3 \t\n'
-        for i in range(3):
-            for j in range(3+1):
-                try:
-                    a[i][j]=float(self.entries[k].get())
-                    k+=1
-                except:
-                    self.popupmsg("Please Insert Numerical Values In All Spaces!")
-        x0,y0,z0=0,0,0
-        x1,x2,x3=0,0,0
-        for i in range(50):
-            x1=(a[0][3]-a[0][1]*x2-a[0][2]*x3)/a[0][0]
-            x2=(a[1][3]-a[1][0]*x1-a[1][2]*x3)/a[1][1]
-            x3=(a[2][3]-a[2][0]*x1-a[2][1]*x2)/a[2][2]
-            e1=abs((x1-x0)/x1)
-            e2=abs((x2-y0)/x2)
-            e3=abs((x3-z0)/x3)
-            x0,y0,z0=x1,x2,x3
-            if e1<epsilon or e2<epsilon or e3<epsilon:
-                break
-            iterations += '%d \t [%.6f \t %.6f\t %.6f]\n' % (i,x1,x2,x3)
+        iterations=gm.gauss_seidel_calc(self,self.entries,epsilon)
         self.open_new_window()
         self.iterations = tk.Label(self.new_window, text=iterations, bg='white')
         self.iterations.grid(row=0, column=0, columnspan=10)
@@ -267,7 +223,6 @@ class Application(tk.Frame):
             self.popupmsg("Please Insert Float Value!")
         self.toplabel = tk.Label(self, text='Please Insert Coefficients:', height=1, width=20)
         self.toplabel.grid(row=0, column=5, sticky='nesw', pady=(10, 10))
-        #a = np.zeros((3,3+1))
         self.entries=[]
         for i in range(n):
             for j in range(0,2*n,2):
@@ -288,7 +243,6 @@ class Application(tk.Frame):
             self.confirm = tk.Button(self, text='Calculate', command=lambda:self.gauss_seidel(epsilon), height=1,
                                 width=4 * 2, bg='#33FF4E') 
         self.confirm.grid(row=1+i,column=15,columnspan=5)
-
 
     def show_extra_buttons(self):
         if self.choices.get() == 'Bisection Method':
