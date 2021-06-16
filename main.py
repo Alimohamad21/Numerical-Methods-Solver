@@ -1,8 +1,12 @@
+import sys
+import tkinter
 import tkinter as tk
 import tkinter.font as font
-import numpy as np
-from tkinter.ttk import *
+from tkinter.filedialog import askopenfilename
+
+sys.path.append("/Numerical-Methods-Solver/lib/")
 from root_solving_methods import *
+import gauss_methods as gm
 
 root_finding_methods = {'Fixed Point': fixed_point, 'Newton Raphson': newton_raphson, 'Bisection Method': bisection}
 
@@ -15,25 +19,36 @@ class Application(tk.Frame):
         self.create_initial_guess2 = True
         self.create_extras = True
         self.mainwindow()
-        #self.create_widgets()
+        # self.create_widgets()
+
     def mainwindow(self):
         self.mainlabel = tk.Label(self, text='Please Choose Type Of Equation:', bg='white')
         self.mainlabel.grid(row=0, column=0, columnspan=10)
-        self.rooteqs = tk.Button(self, text='Root Equations', command=lambda:[self.create_widgets(),self.lineareqs.destroy()],height=1,
-                                     width=15, bg='#33FF4E')
-        self.rooteqs.grid(row=1, column=0, columnspan=5)                             
-        self.lineareqs = tk.Button(self, text='Linear Equations', command=lambda:[self.linear_eqs_menu(),self.rooteqs.destroy(),self.mainlabel.destroy(),self.lineareqs.destroy()], height=1,
-                                     width=15, bg='#33FF4E')
+        self.rooteqs = tk.Button(self, text='Root Equations',
+                                 command=lambda: [self.create_widgets(), self.lineareqs.destroy()], height=1,
+                                 width=15, bg='#33FF4E')
+        self.rooteqs.grid(row=1, column=0, columnspan=5)
+        self.lineareqs = tk.Button(self, text='Linear Equations',
+                                   command=lambda: [self.linear_eqs_menu(), self.rooteqs.destroy(),
+                                                    self.mainlabel.destroy(), self.lineareqs.destroy()], height=1,
+                                   width=15, bg='#33FF4E')
         self.lineareqs.grid(row=1, column=10, columnspan=5)
 
     def linear_eqs_menu(self):
         self.linear_label = tk.Label(self, text='Please Choose Linear Equations Method:', bg='white')
         self.linear_label.grid(row=0, column=0, columnspan=10)
-        self.gauss_elim_button = tk.Button(self, text='Gauss Elimination', command=lambda:[self.gauss_eqs_number(),self.gauss_seidel_button.destroy(),self.gauss_elim_button.destroy(),self.linear_label.destroy()],height=1,
-                                     width=15, bg='#33FF4E')
-        self.gauss_elim_button.grid(row=1, column=0, columnspan=5)                             
-        self.gauss_seidel_button = tk.Button(self, text='Gauss Seidel', command=lambda:[self.gauss_seidel_epsilon(),self.gauss_elim_button.destroy(),self.linear_label.destroy(),self.gauss_seidel_button.destroy()], height=1,
-                                     width=15, bg='#33FF4E')
+        self.gauss_elim_button = tk.Button(self, text='Gauss Elimination',
+                                           command=lambda: [self.gauss_eqs_number(), self.gauss_seidel_button.destroy(),
+                                                            self.gauss_elim_button.destroy(),
+                                                            self.linear_label.destroy()], height=1,
+                                           width=15, bg='#33FF4E')
+        self.gauss_elim_button.grid(row=1, column=0, columnspan=5)
+        self.gauss_seidel_button = tk.Button(self, text='Gauss Seidel', command=lambda: [self.gauss_seidel_epsilon(),
+                                                                                         self.gauss_elim_button.destroy(),
+                                                                                         self.linear_label.destroy(),
+                                                                                         self.gauss_seidel_button.destroy()],
+                                             height=1,
+                                             width=15, bg='#33FF4E')
         self.gauss_seidel_button.grid(row=1, column=10, columnspan=5)
 
     def create_operands(self):
@@ -136,6 +151,21 @@ class Application(tk.Frame):
         self.solve = tk.Button(self, text='solve', command=self.show_extra_buttons, font=self.my_font2, height=self.h,
                                width=self.w + 2, bg='#33FF4E')
         self.solve.grid(row=8, column=0, columnspan=5)
+        self.file_button = tk.Button(self, text='Load File', command=self.load_file, font=self.my_font2, height=self.h,
+                                     width=self.w * 2, bg='#33FAEA')
+        self.file_button.grid(row=9, column=0, columnspan=5, pady=(10, 10))
+
+    def parse(self):
+        lines = self.file_contents['text'].split('\n')
+        print(lines[0])
+
+    def load_file(self):
+        self.file_name = tkinter.filedialog.askopenfilename()
+        self.file_contents = tk.Label(self, text='', bg='white', font=self.my_font)
+        self.file_contents.grid(row=10, column=0, columnspan=10)
+        f = open(self.file_name)
+        for line in f:
+            self.file_contents['text'] += line
 
     def append_output_equation(self, input):
         self.output_equation['text'] += input
@@ -167,71 +197,24 @@ class Application(tk.Frame):
         self.iterations['text'] = result['Iterations']
         self.final_answer['text'] = 'Final Answer:' + result['Final Answer']
         self.execution_time['text'] = 'Execution Time:' + result['Execution Time']
-    
-    def popupmsg(self,msg):
+
+    def popupmsg(self, msg):
         self.popup = tk.Toplevel(self)
         self.popup.wm_title("!")
         self.label = tk.Label(self.popup, text=msg)
         self.label.pack(side="top", fill="x", pady=10)
-        self.B1 = tk.Button(self.popup, text="Okay", command = self.popup.destroy)
+        self.B1 = tk.Button(self.popup, text="Okay", command=self.popup.destroy)
         self.B1.pack()
         self.popup.mainloop()
 
-    def gauss_elimination(self,n):
-        a=np.zeros((n,n+1))
-        k=0
+    def gauss_elimination(self, n):
+        x = gm.gauss_elimination_calc(self, self.entries, n)
         for i in range(n):
-            for j in range(n+1):
-                try:
-                    a[i][j]=float(self.entries[k].get())
-                    k+=1
-                except:
-                    self.popupmsg("Please Insert Numerical Values In All Spaces!")
-        print(a)
-        for i in range(n):
-            for j in range(i+1, n):
-                ratio = a[j][i]/a[i][i]
-                
-                for k in range(n+1):
-                    a[j][k] = a[j][k] - ratio * a[i][k]
-        x = np.zeros(n)
-        x[n-1] = a[n-1][n]/a[n-1][n-1]
+            self.x = tk.Label(self, text='x{}={:.3f} '.format(i + 1, x[i]), height=1, width=10)
+            self.x.grid(row=12, column=0 + i, sticky='nesw', pady=(10, 10))
 
-        for i in range(n-2,-1,-1):
-            x[i] = a[i][n]
-            
-            for j in range(i+1,n):
-                x[i] = x[i] - a[i][j]*x[j]
-            
-            x[i] = x[i]/a[i][i]
-        for i in range(n):
-            self.x = tk.Label(self, text='x{}={:.3f} '.format(i+1,x[i]), height=1, width=10)
-            self.x.grid(row=12, column=0+i, sticky='nesw', pady=(10, 10))
-
-    def gauss_seidel(self,epsilon):
-        a=np.zeros((3,3+1))
-        k=0
-        iterations='i \t x1 \t\t x2 \t\t x3 \t\n'
-        for i in range(3):
-            for j in range(3+1):
-                try:
-                    a[i][j]=float(self.entries[k].get())
-                    k+=1
-                except:
-                    self.popupmsg("Please Insert Numerical Values In All Spaces!")
-        x0,y0,z0=0,0,0
-        x1,x2,x3=0,0,0
-        for i in range(50):
-            x1=(a[0][3]-a[0][1]*x2-a[0][2]*x3)/a[0][0]
-            x2=(a[1][3]-a[1][0]*x1-a[1][2]*x3)/a[1][1]
-            x3=(a[2][3]-a[2][0]*x1-a[2][1]*x2)/a[2][2]
-            e1=abs((x1-x0)/x1)
-            e2=abs((x2-y0)/x2)
-            e3=abs((x3-z0)/x3)
-            x0,y0,z0=x1,x2,x3
-            if e1<epsilon or e2<epsilon or e3<epsilon:
-                break
-            iterations += '%d \t [%.6f \t %.6f\t %.6f]\n' % (i,x1,x2,x3)
+    def gauss_seidel(self, epsilon):
+        iterations = gm.gauss_seidel_calc(self, self.entries, epsilon)
         self.open_new_window()
         self.iterations = tk.Label(self.new_window, text=iterations, bg='white')
         self.iterations.grid(row=0, column=0, columnspan=10)
@@ -239,62 +222,65 @@ class Application(tk.Frame):
     def gauss_seidel_epsilon(self):
         self.epsilon_label = tk.Label(self, text='Please Insert Error:', height=1, width=20)
         self.epsilon_label.grid(row=0, column=0, sticky='nesw', pady=(10, 10))
-        self.epsilon_entry=tk.Entry(self)
-        self.epsilon_entry.grid(row=0,column=10,columnspan=2,pady=(10,10))
-        self.epsilon_button = tk.Button(self, text='Confirm', command=lambda:[self.gauss(3,self.epsilon_entry.get()),self.epsilon_label.destroy(),
-                                self.epsilon_entry.destroy(),self.epsilon_button.destroy()], height=1,
-                                width=4 * 2, bg='#33FF4E')
-        self.epsilon_button.grid(row=0,column=15,columnspan=5)
+        self.epsilon_entry = tk.Entry(self)
+        self.epsilon_entry.grid(row=0, column=10, columnspan=2, pady=(10, 10))
+        self.epsilon_button = tk.Button(self, text='Confirm', command=lambda: [self.gauss(3, self.epsilon_entry.get()),
+                                                                               self.epsilon_label.destroy(),
+                                                                               self.epsilon_entry.destroy(),
+                                                                               self.epsilon_button.destroy()], height=1,
+                                        width=4 * 2, bg='#33FF4E')
+        self.epsilon_button.grid(row=0, column=15, columnspan=5)
 
     def gauss_eqs_number(self):
         self.eqs_num_label = tk.Label(self, text='Please Insert Number of Equations:', height=1, width=30)
         self.eqs_num_label.grid(row=0, column=0, sticky='nesw', pady=(10, 10))
-        self.eqs_entry=tk.Entry(self)
-        self.eqs_entry.grid(row=0,column=10,columnspan=2,pady=(10,10))
-        self.eqs_num_button = tk.Button(self, text='Confirm', command=lambda:[self.gauss(self.eqs_entry.get(),0),self.eqs_num_label.destroy(),
-                                self.eqs_entry.destroy(),self.eqs_num_button.destroy()], height=1,
-                                width=4 * 2, bg='#33FF4E')
-        self.eqs_num_button.grid(row=0,column=15,columnspan=5)
+        self.eqs_entry = tk.Entry(self)
+        self.eqs_entry.grid(row=0, column=10, columnspan=2, pady=(10, 10))
+        self.eqs_num_button = tk.Button(self, text='Confirm', command=lambda: [self.gauss(self.eqs_entry.get(), 0),
+                                                                               self.eqs_num_label.destroy(),
+                                                                               self.eqs_entry.destroy(),
+                                                                               self.eqs_num_button.destroy()], height=1,
+                                        width=4 * 2, bg='#33FF4E')
+        self.eqs_num_button.grid(row=0, column=15, columnspan=5)
 
-    def gauss(self,n,epsilon):
+    def gauss(self, n, epsilon):
         try:
-            n=int(n)
+            n = int(n)
         except:
             self.popupmsg("Please Insert Integer Value!")
         try:
-            epsilon=float(epsilon)
+            epsilon = float(epsilon)
         except:
             self.popupmsg("Please Insert Float Value!")
         self.toplabel = tk.Label(self, text='Please Insert Coefficients:', height=1, width=20)
         self.toplabel.grid(row=0, column=5, sticky='nesw', pady=(10, 10))
-        #a = np.zeros((3,3+1))
-        self.entries=[]
+        self.entries = []
         for i in range(n):
-            for j in range(0,2*n,2):
-                self.label1 = tk.Label(self, text='x{}:'.format(1+j//2), height=1, width=4)
-                self.gauss_entry= tk.Entry(self)
+            for j in range(0, 2 * n, 2):
+                self.label1 = tk.Label(self, text='x{}:'.format(1 + j // 2), height=1, width=4)
+                self.gauss_entry = tk.Entry(self)
                 self.entries.append(self.gauss_entry)
-                self.label1.grid(row=1+i, column=j, sticky='nesw', pady=(10, 10))
-                self.gauss_entry.grid(row=1+i, column=j+1, columnspan=2, pady=(10, 10))
+                self.label1.grid(row=1 + i, column=j, sticky='nesw', pady=(10, 10))
+                self.gauss_entry.grid(row=1 + i, column=j + 1, columnspan=2, pady=(10, 10))
             self.label1 = tk.Label(self, text='=', height=1, width=4)
             self.gauss_entry = tk.Entry(self)
             self.entries.append(self.gauss_entry)
-            self.label1.grid(row=1+i, column=j+2, sticky='nesw', pady=(10, 10))
-            self.gauss_entry.grid(row=1+i, column=j+3,columnspan=2, pady=(10, 10))
-        if epsilon==0:
-            self.confirm = tk.Button(self, text='Calculate', command=lambda:self.gauss_elimination(n), height=1,
-                                width=4 * 2, bg='#33FF4E') 
-        else: 
-            self.confirm = tk.Button(self, text='Calculate', command=lambda:self.gauss_seidel(epsilon), height=1,
-                                width=4 * 2, bg='#33FF4E') 
-        self.confirm.grid(row=1+i,column=15,columnspan=5)
-
+            self.label1.grid(row=1 + i, column=j + 2, sticky='nesw', pady=(10, 10))
+            self.gauss_entry.grid(row=1 + i, column=j + 3, columnspan=2, pady=(10, 10))
+        if epsilon == 0:
+            self.confirm = tk.Button(self, text='Calculate', command=lambda: self.gauss_elimination(n), height=1,
+                                     width=4 * 2, bg='#33FF4E')
+        else:
+            self.confirm = tk.Button(self, text='Calculate', command=lambda: self.gauss_seidel(epsilon), height=1,
+                                     width=4 * 2, bg='#33FF4E')
+        self.confirm.grid(row=1 + i, column=15, columnspan=5)
 
     def show_extra_buttons(self):
+        self.file_button.destroy()
         if self.choices.get() == 'Bisection Method':
             if self.create_initial_guess2:
                 self.label4 = tk.Label(self, font=self.my_font2, text='guess 2:', height=self.h, width=self.w)
-                self.initial_guess2 = tk.Entry(self,font=self.my_font2)
+                self.initial_guess2 = tk.Entry(self, font=self.my_font2)
                 self.label4.grid(row=10, column=0, sticky='nesw', pady=(10, 10))
                 self.initial_guess2.grid(row=10, column=1, columnspan=5, pady=(10, 10))
                 self.create_initial_guess2 = False
@@ -305,14 +291,14 @@ class Application(tk.Frame):
                 self.create_initial_guess2 = True
             except:
                 pass
-            
+
         if self.create_extras:
             self.label1 = tk.Label(self, font=self.my_font2, text='guess:', height=self.h, width=self.w)
-            self.initial_guess = tk.Entry(self,font=self.my_font2)
+            self.initial_guess = tk.Entry(self, font=self.my_font2)
             self.label2 = tk.Label(self, font=self.my_font2, text='iterations:', height=self.h, width=self.w * 2)
-            self.max_iterations = tk.Entry(self,font=self.my_font2)
+            self.max_iterations = tk.Entry(self, font=self.my_font2)
             self.label3 = tk.Label(self, font=self.my_font2, text='epsilon:', height=self.h, width=self.w)
-            self.epsilon = tk.Entry(self,font=self.my_font2)
+            self.epsilon = tk.Entry(self, font=self.my_font2)
             self.confirm = tk.Button(self, text='Confirm', command=self.show_result, font=self.my_font2, height=self.h,
                                      width=self.w * 2, bg='#33FF4E')
             self.label1.grid(row=9, column=0, sticky='nesw', pady=(10, 10))
