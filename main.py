@@ -157,7 +157,31 @@ class Application(tk.Frame):
 
     def parse(self):
         lines = self.file_contents['text'].split('\n')
-        print(lines[0])
+        equation = lines[0]
+        method_name = lines[1]
+        interval = lines[2].split(' ')
+        iter_or_epsilon = lines[3]
+        if iter_or_epsilon.find('.') == -1:
+            iter_or_epsilon = int(iter_or_epsilon)
+        else:
+            iter_or_epsilon = float(iter_or_epsilon)
+        if "bisection" in equation.lower():
+            if type(iter_or_epsilon) == float:
+                result = root_finding_methods['Bisection Method'](equation, float(interval[0]), float(interval[1]), epsilon=iter_or_epsilon)
+            else:
+                result = root_finding_methods['Bisection Method'](equation, float(interval[0]), float(interval[1]), max_iterations=iter_or_epsilon)
+        elif "newton" in equation.lower():
+            if type(iter_or_epsilon) == float:
+                result = root_finding_methods['Newton Raphson'](equation, float(interval), epsilon=iter_or_epsilon)
+            else:
+                result = root_finding_methods['Newton Raphson'](equation, float(interval), max_iterations=iter_or_epsilon)
+        elif "fixed" in equation.lower():
+            if type(iter_or_epsilon) == float:
+                result = root_finding_methods['Fixed Point'](equation, float(interval), epsilon=iter_or_epsilon)
+            else:
+                result = root_finding_methods['Fixed Point'](equation, float(interval), max_iterations=iter_or_epsilon)
+
+        return  result
 
     def load_file(self):
         self.file_name = tkinter.filedialog.askopenfilename()
@@ -166,6 +190,8 @@ class Application(tk.Frame):
         f = open(self.file_name)
         for line in f:
             self.file_contents['text'] += line
+
+        return self.parse()
 
     def append_output_equation(self, input):
         self.output_equation['text'] += input
