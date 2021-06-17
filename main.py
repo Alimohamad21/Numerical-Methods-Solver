@@ -19,6 +19,8 @@ class Application(tk.Frame):
         self.create_initial_guess2 = True
         self.create_extras = True
         self.mainwindow()
+        self.loaded_file=False
+        self.file_result=dict()
         # self.create_widgets()
 
     def mainwindow(self):
@@ -157,6 +159,7 @@ class Application(tk.Frame):
 
     def parse(self):
         lines = self.file_contents['text'].split('\n')
+        result=''
         equation = lines[0]
         method_name = lines[1]
         interval = lines[2].split(' ')
@@ -165,23 +168,22 @@ class Application(tk.Frame):
             iter_or_epsilon = int(iter_or_epsilon)
         else:
             iter_or_epsilon = float(iter_or_epsilon)
-        if "bisection" in equation.lower():
+        if "bisection" in method_name.lower():
             if type(iter_or_epsilon) == float:
                 result = root_finding_methods['Bisection Method'](equation, float(interval[0]), float(interval[1]), epsilon=iter_or_epsilon)
             else:
                 result = root_finding_methods['Bisection Method'](equation, float(interval[0]), float(interval[1]), max_iterations=iter_or_epsilon)
-        elif "newton" in equation.lower():
+        elif "newton" in method_name.lower():
             if type(iter_or_epsilon) == float:
-                result = root_finding_methods['Newton Raphson'](equation, float(interval), epsilon=iter_or_epsilon)
+                result = root_finding_methods['Newton Raphson'](equation, float(interval[0]), epsilon=iter_or_epsilon)
             else:
-                result = root_finding_methods['Newton Raphson'](equation, float(interval), max_iterations=iter_or_epsilon)
-        elif "fixed" in equation.lower():
+                result = root_finding_methods['Newton Raphson'](equation, float(interval[0]), max_iterations=iter_or_epsilon)
+        elif "fixed" in method_name.lower():
             if type(iter_or_epsilon) == float:
-                result = root_finding_methods['Fixed Point'](equation, float(interval), epsilon=iter_or_epsilon)
+                result = root_finding_methods['Fixed Point'](equation, float(interval[0]), epsilon=iter_or_epsilon)
             else:
-                result = root_finding_methods['Fixed Point'](equation, float(interval), max_iterations=iter_or_epsilon)
-
-        return  result
+                result = root_finding_methods['Fixed Point'](equation, float(interval[0]), max_iterations=iter_or_epsilon)
+        self.file_result=result
 
     def load_file(self):
         self.file_name = tkinter.filedialog.askopenfilename()
@@ -190,8 +192,11 @@ class Application(tk.Frame):
         f = open(self.file_name)
         for line in f:
             self.file_contents['text'] += line
+        self.loaded_file=True
+        self.parse()
+        self.show_file_result()
 
-        return self.parse()
+
 
     def append_output_equation(self, input):
         self.output_equation['text'] += input
@@ -223,6 +228,18 @@ class Application(tk.Frame):
         self.iterations['text'] = result['Iterations']
         self.final_answer['text'] = 'Final Answer:' + result['Final Answer']
         self.execution_time['text'] = 'Execution Time:' + result['Execution Time']
+
+    def show_file_result(self):
+        self.open_new_window()
+        self.iterations = tk.Label(self.new_window, text='', bg='white', font=self.my_font)
+        self.iterations.grid(row=0, column=0, columnspan=10)
+        self.final_answer = tk.Label(self.new_window, text='', font=self.my_font)
+        self.final_answer.grid(row=1, column=3, columnspan=5)
+        self.execution_time = tk.Label(self.new_window, text='', font=self.my_font)
+        self.execution_time.grid(row=2, column=3, columnspan=5)
+        self.iterations['text'] = self.file_result['Iterations']
+        self.final_answer['text'] = 'Final Answer:' + self.file_result['Final Answer']
+        self.execution_time['text'] = 'Execution Time:' + self.file_result['Execution Time']
 
     def popupmsg(self, msg):
         self.popup = tk.Toplevel(self)
@@ -302,7 +319,11 @@ class Application(tk.Frame):
         self.confirm.grid(row=1 + i, column=15, columnspan=5)
 
     def show_extra_buttons(self):
-        self.file_button.destroy()
+        try:
+            self.file_button.destroy()
+            self.file_contents.destroy()
+        except:
+            pass
         if self.choices.get() == 'Bisection Method':
             if self.create_initial_guess2:
                 self.label4 = tk.Label(self, font=self.my_font2, text='guess 2:', height=self.h, width=self.w)
@@ -352,3 +373,4 @@ root = tk.Tk()
 root.geometry('700x550')
 app = Application(master=root)
 app.mainloop()
+
